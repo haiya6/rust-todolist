@@ -1,5 +1,7 @@
 use std::{io::stdin, fmt::Display};
 
+static mut ID: i32 = 0;
+
 struct Todo {
     id: i32,
     content: String,
@@ -7,11 +9,14 @@ struct Todo {
 }
 
 impl Todo {
-    fn new(id: i32, content: String) -> Todo {
-        Todo {
-            id,
-            content,
-            done: false
+    fn new(content: String) -> Todo {
+        unsafe {
+            ID += 1;
+            Todo {
+                id: ID,
+                content,
+                done: false
+            }
         }
     }
 }
@@ -23,7 +28,6 @@ impl Display for Todo {
 }
 
 fn main() {
-    let mut id = 0;
     let mut todo_list: Vec<Todo> = Vec::new();
     let mut input = String::new();
 
@@ -37,10 +41,9 @@ fn main() {
             println!("输入需要添加的 TODO：");
             input.clear();
             stdin().read_line(&mut input).unwrap();
-            let will_add_todo = Todo::new(id, input.trim().to_string());
-            id += 1;
+            let will_add_todo = Todo::new(input.trim().to_string());
+            println!("添加成功 TODO: {}", will_add_todo.content);
             todo_list.push(will_add_todo);
-            println!("添加成功 TODO: {}", todo_list.last().unwrap().content);
             println!();
         } else if input.trim() == "2" {
             println!("请输入需要删除的 TODO ID：");
@@ -81,17 +84,17 @@ fn print_todo_list(list: &Vec<Todo>) {
     println!();
 }
 
-fn get_todo_index_by_id(todo_list: &mut Vec<Todo>, id: i32) -> Option<usize> {
+fn get_todo_index_by_id(todo_list: &mut Vec<Todo>, query_id: i32) -> Option<usize> {
     for (index, item) in todo_list.iter().enumerate() {
-        if item.id == id {
+        if item.id == query_id {
             return Some(index);   
         }
     }
     return None;
 }
 
-fn remove_todo_by_id(todo_list: &mut Vec<Todo>, id: i32) {
-    let will_remove_index = get_todo_index_by_id(todo_list, id);
+fn remove_todo_by_id(todo_list: &mut Vec<Todo>, will_remove_id: i32) {
+    let will_remove_index = get_todo_index_by_id(todo_list, will_remove_id);
 
     if let Some(index) = will_remove_index {
         let removed_todo = todo_list.remove(index);
@@ -99,12 +102,12 @@ fn remove_todo_by_id(todo_list: &mut Vec<Todo>, id: i32) {
         return;
     }
 
-    println!("没有找到 TODO：{}", id);
+    println!("没有找到 TODO：{}", will_remove_id);
     println!();
 }
 
-fn done_todo_by_id(todo_list: &mut Vec<Todo>, id: i32) {
-    let will_done_index = get_todo_index_by_id(todo_list, id);
+fn done_todo_by_id(todo_list: &mut Vec<Todo>, will_done_id: i32) {
+    let will_done_index = get_todo_index_by_id(todo_list, will_done_id);
 
     if let Some(index) = will_done_index {
         todo_list[index].done = true;
